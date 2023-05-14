@@ -5,8 +5,8 @@
 
 QQuickBgfxItem::QQuickBgfxItem()
 {
-    setAcceptedMouseButtons(Qt::AllButtons);
-    setFlag(QQuickItem::ItemAcceptsInputMethod);
+    //setAcceptedMouseButtons(Qt::AllButtons);
+    //setFlag(QQuickItem::ItemAcceptsInputMethod);
     setFlag(QQuickItem::ItemHasContents);
 }
 

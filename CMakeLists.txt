@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.14)
-project(BgfxQQuickItemExample LANGUAGES CXX)
+project(bgfx_qquickitem LANGUAGES CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -7,7 +7,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-set(INSTALL_EXAMPLEDIR "BgfxQQuickItemExample")
+set(INSTALL_EXAMPLEDIR "bgfx_qquickitem")
 
 find_package(Qt6 COMPONENTS Core)
 find_package(Qt6 COMPONENTS Gui)
@@ -41,17 +41,17 @@ else()
     )
 endif()
 
-qt_add_executable(BgfxQQuickItemExample ${SOURCES})
+qt_add_library(bgfx_qquickitem ${SOURCES})
 
 if (APPLE)
-    target_link_libraries(BgfxQQuickItemExample PUBLIC"-framework AppKit")
+    target_link_libraries(bgfx_qquickitem PUBLIC"-framework AppKit")
 endif()
 
 if (APPLE AND ENABLE_METAL)
-    target_link_libraries(BgfxQQuickItemExample PUBLIC "-framework Metal")
+    target_link_libraries(bgfx_qquickitem PUBLIC "-framework Metal")
 endif()
 
-target_link_libraries(BgfxQQuickItemExample PUBLIC  Qt::Core
+target_link_libraries(bgfx_qquickitem PUBLIC  Qt::Core
                                                     Qt::Gui
                                                     Qt::Qml
                                                     Qt::Quick
@@ -60,33 +60,34 @@ target_link_libraries(BgfxQQuickItemExample PUBLIC  Qt::Core
                                                     bimg
                                                     example-common)
 
-target_include_directories(BgfxQQuickItemExample
+target_include_directories(bgfx_qquickitem
                             PUBLIC
-                            ${CMAKE_SOURCE_DIR}/src
-                            ${CMAKE_SOURCE_DIR}/src/qquickbgfxitem)
+                            ${CMAKE_CURRENT_LIST_DIR}
+                            ${CMAKE_CURRENT_LIST_DIR}/src
+                            ${CMAKE_CURRENT_LIST_DIR}/src/qquickbgfxitem)
 
 # Resources:
-set(BgfxQQuickItemExample_resource_files "main.qml")
+set(bgfx_qquickitem_resource_files "main.qml")
 
-qt6_add_resources(BgfxQQuickItemExample "BgfxQQuickItemExample"
+qt6_add_resources(bgfx_qquickitem "bgfx_qquickitem"
     PREFIX
-        "/BgfxQQuickItemExample"
+        "/bgfx_qquickitem"
     FILES
-        ${BgfxQQuickItemExample_resource_files}
+        ${bgfx_qquickitem_resource_files}
 )
 
-install(TARGETS BgfxQQuickItemExample
+install(TARGETS bgfx_qquickitem
     RUNTIME DESTINATION "${INSTALL_EXAMPLEDIR}"
     BUNDLE DESTINATION  "${INSTALL_EXAMPLEDIR}"
     LIBRARY DESTINATION "${INSTALL_EXAMPLEDIR}"
 )
 
-set_target_properties(BgfxQQuickItemExample PROPERTIES
+set_target_properties(bgfx_qquickitem PROPERTIES
     QT_QML_MODULE_VERSION 1.0
     QT_QML_MODULE_URI QQuickBgfx
 )
 
-qt_add_qml_module(BgfxQQuickItemExample
+qt_add_qml_module(bgfx_qquickitem
                   URI QQuickBgfx
                   VERSION 1.0
                   QML_FILES main.qml)

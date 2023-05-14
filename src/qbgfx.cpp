@@ -17,12 +17,19 @@ QBgfx::QBgfx(QQuickWindow *w, const QList<QQuickBgfxItem *> items): m_window(w)
     //Qt::DirectConnection needs to be specified in order to call the slot from the signal thread
     connect(m_window, &QQuickWindow::beforeFrameBegin, this, &QBgfx::init, Qt::DirectConnection);
     connect(m_window, &QQuickWindow::beforeRenderPassRecording, this, &QBgfx::renderFrame, Qt::DirectConnection);
+    connect(m_window, &QQuickWindow::beforeSynchronizing, this, &QBgfx::synchronize, Qt::DirectConnection);
+
     //Free standing function instead will always be called from the signal thread
     connect(m_window, &QQuickWindow::afterRenderPassRecording, QQuickBgfx::frame);
+
     //    connect(QGuiApplication::instance(), &QGuiApplication::aboutToQuit, this, &Renderer::shutdown, Qt::QueuedConnection);
 
     m_bgfxItems.reserve(m_bgfxItems.size());
     m_bgfxItems.insert(m_bgfxItems.end(), items.begin(), items.end());
+}
+void QBgfx::synchronize()
+{
+    emit sync(m_bgfxItems, m_window);
 }
 
 QBgfx::~QBgfx()
@@ -36,7 +43,7 @@ void QBgfx::init()
     const auto dpr = m_window->effectiveDevicePixelRatio();
     auto winHandle = reinterpret_cast<void *>(m_window->winId());
 
-    #ifdef (__APPLE__ && APPLE_USE_METAL) || _WIN32
+    #if defined(__APPLE__) && defined(APPLE_USE_METAL) || defined(_WIN32)
     auto context = static_cast<void *>(rif->getResource(m_window, QSGRendererInterface::DeviceResource));
     #else
     auto context = static_cast<void *>(rif->getResource(m_window, QSGRendererInterface::OpenGLContextResource));
@@ -59,7 +66,7 @@ void QBgfx::init()
     m_bgfxInit =
       QQuickBgfx::initBackend(gaphicsApi, winHandle, context, m_window->width() * dpr, m_window->height() * dpr);
 
-    emit initialized(m_bgfxInit);
+    emit initialized(m_bgfxInit, m_window);
 }
 
 void QBgfx::renderFrame()
@@ -68,7 +75,7 @@ void QBgfx::renderFrame()
         return;
 
     m_window->beginExternalCommands();
-    emit render(m_bgfxItems);
+    emit render(m_bgfxItems, m_window);
     m_window->endExternalCommands();
 }
 

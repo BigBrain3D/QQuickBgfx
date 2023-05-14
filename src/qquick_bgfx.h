@@ -16,7 +16,7 @@ struct TextureHandles
     uintptr_t nativeTextureHandle{};
 };
 
-#ifdef __APPLE__ && APPLE_USE_METAL
+#if defined(__APPLE__) || defined(APPLE_USE_METAL)
 bgfx::Init initMetalBackend(void *windowHandle, void *context, const uint16_t width, const uint16_t height);
 TextureHandles CreateQSGMetalTexture(QQuickWindow *window, int w, int h);
 #elif _WIN32
@@ -43,7 +43,7 @@ inline bgfx::Init initBackend(bgfx::RendererType::Enum graphicsApi, void *window
 #endif
             break;
         case bgfx::RendererType::OpenGL:
-#ifdef __linux__ || __APPLE__
+#if defined(__linux__) || defined(__APPLE__)
             return QQuickBgfx::initGLBackend(windowHandle, context, width, height);
 #endif
             break;
@@ -69,7 +69,7 @@ inline TextureHandles CreateQSGTexture(QQuickWindow *window, int w, int h, QOpen
 #endif
             break;
         case bgfx::RendererType::OpenGL:
-#ifdef __linux__ || __APPLE__
+#if defined(__linux__) || defined(__APPLE__)
             return CreateGLTexture(window, w, h, context);
 #endif
             break;
