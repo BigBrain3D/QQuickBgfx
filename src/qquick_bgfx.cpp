@@ -37,7 +37,6 @@ QQuickBgfx::TextureHandles QQuickBgfx::CreateQSGD3D11Texture(QQuickWindow *windo
             reinterpret_cast<uintptr_t>(d3d11_texture.Get())};
 }
 #else
-#include <GL/glx.h>
 #include <QOpenGLContext>
 #include <qopenglfunctions.h>
 
