@@ -19,8 +19,7 @@ bgfx::Init QQuickBgfx::initD3D11Backend(void *windowHandler, void *context, cons
         init.platformData.context = reinterpret_cast<ID3D11Device *>(context);
         return init;
     }
-    else
-        return bgfx::Init();
+    else return bgfx::Init();
 }
 
 QQuickBgfx::TextureHandles QQuickBgfx::CreateQSGD3D11Texture(QQuickWindow *window, int w, int h)
@@ -32,11 +31,47 @@ QQuickBgfx::TextureHandles QQuickBgfx::CreateQSGD3D11Texture(QQuickWindow *windo
     Microsoft::WRL::ComPtr<ID3D11Texture2D> d3d11_texture;
     auto dev = (ID3D11Device *)bgfx::getInternalData()->context;
     if (dev->CreateTexture2D(&d3d11_texture_desc, nullptr, &d3d11_texture) != S_OK)
-    {
         return {nullptr, reinterpret_cast<uintptr_t>(d3d11_texture.Get())};
-    }
 
     return {QNativeInterface::QSGD3D11Texture::fromNative(d3d11_texture.Get(), window, {w, h}),
             reinterpret_cast<uintptr_t>(d3d11_texture.Get())};
+}
+#else
+#include <GL/glx.h>
+#include <QOpenGLContext>
+#include <qopenglfunctions.h>
+
+bgfx::Init QQuickBgfx::initGLBackend(void* windowHandle, void* context, const uint16_t width, const uint16_t height) {
+    if (!initialized())
+    {
+        bgfx::Init init;
+        init.type = bgfx::RendererType::OpenGL;
+        init.resolution.reset = BGFX_RESET_VSYNC;
+        init.resolution.width = width;
+        init.resolution.height = height;
+        init.platformData.context = context;
+        init.platformData.nwh = windowHandle;
+        return init;
+    }
+    else return bgfx::Init();
+}
+
+QQuickBgfx::TextureHandles QQuickBgfx::CreateGLTexture(QQuickWindow *window, int w, int h, QOpenGLContext* context)
+{
+    context->makeCurrent(window);
+
+    auto* funcs = context->functions();
+    
+    GLuint texture;
+
+    funcs->glGenTextures(1, &texture);
+
+    funcs->glBindTexture(GL_TEXTURE_2D, texture);
+
+    funcs->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+
+    context->doneCurrent();
+
+    return {QNativeInterface::QSGOpenGLTexture::fromNative(texture, window, {w, h}), static_cast<uintptr_t>(texture)};
 }
 #endif

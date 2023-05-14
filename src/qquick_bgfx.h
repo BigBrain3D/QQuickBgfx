@@ -3,6 +3,8 @@
 #include <bgfx/platform.h>
 #include <bx/bx.h>
 
+#include <QOpenGLContext>
+
 class QSGTexture;
 class QQuickWindow;
 
@@ -14,12 +16,15 @@ struct TextureHandles
     uintptr_t nativeTextureHandle{};
 };
 
-#ifdef __APPLE__
+#ifdef __APPLE__ && APPLE_USE_METAL
 bgfx::Init initMetalBackend(void *windowHandle, void *context, const uint16_t width, const uint16_t height);
 TextureHandles CreateQSGMetalTexture(QQuickWindow *window, int w, int h);
-#else
+#elif _WIN32
 bgfx::Init initD3D11Backend(void *windowHandle, void *context, const uint16_t width, const uint16_t height);
 TextureHandles CreateQSGD3D11Texture(QQuickWindow *window, int w, int h);
+#else
+bgfx::Init initGLBackend(void* windowHandle, void* context, const uint16_t width, const uint16_t height);
+TextureHandles CreateGLTexture(QQuickWindow *window, int w, int h, QOpenGLContext* context);
 #endif
 
 inline bgfx::Init initBackend(bgfx::RendererType::Enum graphicsApi, void *windowHandle, void *context,
@@ -37,6 +42,11 @@ inline bgfx::Init initBackend(bgfx::RendererType::Enum graphicsApi, void *window
             return QQuickBgfx::initD3D11Backend(windowHandle, context, width, height);
 #endif
             break;
+        case bgfx::RendererType::OpenGL:
+#ifdef __linux__ || __APPLE__
+            return QQuickBgfx::initGLBackend(windowHandle, context, width, height);
+#endif
+            break;
         default:
             BX_ASSERT(false, "Invalid or not implemented Graphics Api");
             break;
@@ -44,7 +54,7 @@ inline bgfx::Init initBackend(bgfx::RendererType::Enum graphicsApi, void *window
     return {};
 }
 
-inline TextureHandles CreateQSGTexture(QQuickWindow *window, int w, int h)
+inline TextureHandles CreateQSGTexture(QQuickWindow *window, int w, int h, QOpenGLContext* context = nullptr)
 {
     switch (bgfx::getRendererType())
     {
@@ -56,6 +66,11 @@ inline TextureHandles CreateQSGTexture(QQuickWindow *window, int w, int h)
         case bgfx::RendererType::Direct3D11:
 #ifdef _WIN32
             return CreateQSGD3D11Texture(window, w, h);
+#endif
+            break;
+        case bgfx::RendererType::OpenGL:
+#ifdef __linux__ || __APPLE__
+            return CreateGLTexture(window, w, h, context);
 #endif
             break;
         default:

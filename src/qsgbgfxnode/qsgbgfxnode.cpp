@@ -65,7 +65,21 @@ void QSGBgfxNode::sync()
         bgfx::frame();
 
         QQuickBgfx::TextureHandles textureHandles;
-        textureHandles = QQuickBgfx::CreateQSGTexture(m_window, width, height);
+
+        #ifdef __linux__ || __APPLE__
+        QSGRendererInterface *rif = m_window->rendererInterface();
+        auto qglcontext = reinterpret_cast<QOpenGLContext*>(rif->getResource(m_window, QSGRendererInterface::OpenGLContextResource));;
+
+        #ifdef __linux__
+        auto context = qglcontext->nativeInterface<QNativeInterface::QGLXContext>();
+        #elif __APPLE__
+        auto context = qglcontext->nativeInterface<QNativeInterface::QCocoaGLContext>();
+        #endif
+
+        textureHandles = QQuickBgfx::CreateQSGTexture(m_window, width, height, qglcontext);
+        #else
+        textureHandles = QQuickBgfx::CreateQSGTexture(m_window, width, height, nullptr);
+        #endif
 
         auto newBgfxInternalId = bgfx::overrideInternal(backBuffer, textureHandles.nativeTextureHandle);
 
@@ -73,6 +87,7 @@ void QSGBgfxNode::sync()
 		{
 			bgfx::destroy(m_offscreenFB);
 		}
+
 		m_offscreenFB = bgfx::createFrameBuffer(2, m_attachments, false);
 		bgfx::setViewFrameBuffer(m_viewId, m_offscreenFB);
 		bgfx::setViewRect(m_viewId, 0, 0, width, height);

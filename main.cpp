@@ -25,6 +25,8 @@ void init_example(const bgfx::Init& init)
 //render_example runs the rendering code
 void render_example(const std::vector<QQuickBgfxItem*>& bgfxItems)
 {
+    printf("%d\n", bgfxItems.size());
+
     for(const auto item : bgfxItems)
     {
         if (item->viewId() < 256)
@@ -32,6 +34,7 @@ void render_example(const std::vector<QQuickBgfxItem*>& bgfxItems)
             float r{0.0f};
             float g{0.0f};
             float b{0.0f};
+
             auto c = item->backgroundColor();
             c.setHslF(c.hueF(), c.saturationF(), c.lightnessF() * std::clamp(item->mousePosition()[1] / (float)item->height(), 0.0f, 1.0f));
             c.getRgbF(&r, &g, &b);
@@ -39,6 +42,7 @@ void render_example(const std::vector<QQuickBgfxItem*>& bgfxItems)
             const uint32_t color = uint8_t(r * 255) << 24 | uint8_t(g * 255) << 16 | uint8_t(b * 255) << 8 | 255;
 
             bgfx::setViewClear(item->viewId(), BGFX_CLEAR_COLOR|BGFX_CLEAR_DEPTH, color, 1.0f, 0);
+            
             bgfx::touch(item->viewId());
 
             const auto w = item->dprWidth();
@@ -50,7 +54,9 @@ void render_example(const std::vector<QQuickBgfxItem*>& bgfxItems)
 			const bx::Vec3 eye = { std::clamp(item->mousePosition()[0]/ (float)item->width()-0.5f, -0.5f, 0.5f) * 15.0f, 0.0f, std::clamp(item->mousePosition()[1] / (float)item->height()-0.5f, -0.5f, 0.5f) * 15.0f };
 
             float view[16];
-            bx::mtxLookAt(view, eye, at);
+            bx::mtxLookAt(view, eye, at, { 0.F, 1.F, 0.F });
+
+            printf("%d, %d\n", w, h);
 
             float proj[16];
             bx::mtxProj(proj, 60.0f, float(w)/float(h), 0.1f, 100.0f, bgfx::getCaps()->homogeneousDepth);
@@ -59,10 +65,9 @@ void render_example(const std::vector<QQuickBgfxItem*>& bgfxItems)
 
             float mtx[16];
             bx::mtxRotateXY(mtx, time, time);
+            
             DebugDrawEncoder dde;
             dde.begin(item->viewId());
-            dde.drawCapsule({-2.0f, -2.0f, 0.0f}, {-2.0f, 0.0f, 0.0f}, 1.0);
-            dde.drawCone({3.0f, -2.0f, 0.0f}, {3.0f, 2.0f, 0.0f}, 1.0f);
             dde.drawAxis(0.0f, 0.0f, 0.0f);
             dde.setTransform(&mtx);
             dde.draw(bx::Aabb{{0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}});
@@ -77,10 +82,15 @@ int main(int argc, char **argv)
 
 #if(WIN32)
     QQuickWindow::setGraphicsApi(QSGRendererInterface::Direct3D11Rhi);
-#else
+#elif __linux__
+    QQuickWindow::setGraphicsApi(QSGRendererInterface::OpenGLRhi);
+#elif __APPLE__
+#ifdef APPLE_USE_METAL
     QQuickWindow::setGraphicsApi(QSGRendererInterface::MetalRhi);
+#else
+    QQuickWIndow::setGraphicsApi(QSGRendererInterface::OpenGLRhi);
 #endif
-    
+#endif    
 
     QQuickView view;
     view.setResizeMode(QQuickView::SizeRootObjectToView);

@@ -35,7 +35,12 @@ void QBgfx::init()
     QSGRendererInterface *rif = m_window->rendererInterface();
     const auto dpr = m_window->effectiveDevicePixelRatio();
     auto winHandle = reinterpret_cast<void *>(m_window->winId());
+
+    #ifdef (__APPLE__ && APPLE_USE_METAL) || _WIN32
     auto context = static_cast<void *>(rif->getResource(m_window, QSGRendererInterface::DeviceResource));
+    #else
+    auto context = static_cast<void *>(rif->getResource(m_window, QSGRendererInterface::OpenGLContextResource));
+    #endif
 
     bgfx::RendererType::Enum gaphicsApi{bgfx::RendererType::Count};
     switch (rif->graphicsApi())
@@ -46,6 +51,8 @@ void QBgfx::init()
         case QSGRendererInterface::Direct3D11:
             gaphicsApi = bgfx::RendererType::Direct3D11;
             break;
+        case QSGRendererInterface::OpenGLRhi:
+            gaphicsApi = bgfx::RendererType::OpenGL;
         default:
             break;
     }
