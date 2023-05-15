@@ -23,31 +23,40 @@ set(SOURCES main.cpp
             src/qsgbgfxnode/qsgbgfxnode.h
             src/qsgbgfxnode/qsgbgfxnode.cpp)
 
-option(ENABLE_METAL "Enables metal backend." OFF)
+if (APPLE)
+    set(RENDERER_NAME "Metal")
+    add_compile_definitions(QQ_ENABLE_METAL)
+elseif(WIN32)
+    set(RENDERER_NAME "OpenGL")
+    add_compile_definitions(QQ_ENABLE_OPENGL)
+elseif(UNIX)
+    set(RENDERER_NAME "OpenGL")
+    add_compile_definitions(QQ_ENABLE_OPENGL)
+endif()
 
-if(ENABLE_METAL)
+if(RENDERER_NAME STREQUAL "Metal")
     add_definitions(ENABLE_METAL)
 endif()
 
-if(APPLE AND ENABLE_METAL)
+if(RENDERER_NAME STREQUAL "Metal")
     set(SOURCES
         ${SOURCES}
-        src/qquick_bgfx.mm
-    )
+        src/qquick_bgfx.mm)
 else()
     set(SOURCES
         ${SOURCES}
-        src/qquick_bgfx.cpp
-    )
+        src/qquick_bgfx.cpp)
 endif()
 
-qt_add_library(bgfx_qquickitem ${SOURCES})
-
-if (APPLE)
-    target_link_libraries(bgfx_qquickitem PUBLIC"-framework AppKit")
+if (QQBGFX_BUILD_LIBRARY)
+    qt_add_library(bgfx_qquickitem ${SOURCES})
+else()
+    qt_add_executable(bgfx_qquickitem ${SOURCES})
 endif()
 
-if (APPLE AND ENABLE_METAL)
+if (RENDERER_NAME STREQUAL "Metal")
+    target_link_libraries(bgfx_qquickitem PUBLIC "-framework AppKit")
+
     target_link_libraries(bgfx_qquickitem PUBLIC "-framework Metal")
 endif()
 
@@ -66,31 +75,34 @@ target_include_directories(bgfx_qquickitem
                             ${CMAKE_CURRENT_LIST_DIR}/src
                             ${CMAKE_CURRENT_LIST_DIR}/src/qquickbgfxitem)
 
-# Resources:
-set(bgfx_qquickitem_resource_files "main.qml")
+if (QQBGFX_BUILD_LIBRARY)
+    # ...
+else()
+    # Resources:
+    set(bgfx_qquickitem_resource_files "main.qml")
 
-qt6_add_resources(bgfx_qquickitem "bgfx_qquickitem"
-    PREFIX
-        "/bgfx_qquickitem"
-    FILES
-        ${bgfx_qquickitem_resource_files}
-)
+    qt6_add_resources(bgfx_qquickitem "bgfx_qquickitem"
+        PREFIX
+            "/bgfx_qquickitem"
+        FILES
+            ${bgfx_qquickitem_resource_files}
+    )
 
-install(TARGETS bgfx_qquickitem
+    set_target_properties(bgfx_qquickitem PROPERTIES
+        QT_QML_MODULE_VERSION 1.0
+        QT_QML_MODULE_URI QQuickBgfx
+    )
+
+    install(TARGETS bgfx_qquickitem
     RUNTIME DESTINATION "${INSTALL_EXAMPLEDIR}"
     BUNDLE DESTINATION  "${INSTALL_EXAMPLEDIR}"
-    LIBRARY DESTINATION "${INSTALL_EXAMPLEDIR}"
-)
+    LIBRARY DESTINATION "${INSTALL_EXAMPLEDIR}")
 
-set_target_properties(bgfx_qquickitem PROPERTIES
-    QT_QML_MODULE_VERSION 1.0
-    QT_QML_MODULE_URI QQuickBgfx
-)
-
-qt_add_qml_module(bgfx_qquickitem
+    qt_add_qml_module(bgfx_qquickitem
                   URI QQuickBgfx
                   VERSION 1.0
                   QML_FILES main.qml)
+endif()
 
 add_subdirectory(deps)
 

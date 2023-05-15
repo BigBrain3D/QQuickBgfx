@@ -65,20 +65,22 @@ void QSGBgfxNode::sync()
         bgfx::frame();
 
         QQuickBgfx::TextureHandles textureHandles;
+        
+        #if defined(QQ_ENABLE_OPENGL)
+            QSGRendererInterface *rif = m_window->rendererInterface();
+            auto qglcontext = reinterpret_cast<QOpenGLContext*>(rif->getResource(m_window, QSGRendererInterface::OpenGLContextResource));;
 
-        #if defined(__linux__) || defined(__APPLE__)
-        QSGRendererInterface *rif = m_window->rendererInterface();
-        auto qglcontext = reinterpret_cast<QOpenGLContext*>(rif->getResource(m_window, QSGRendererInterface::OpenGLContextResource));;
+            #ifdef __linux__
+                auto context = qglcontext->nativeInterface<QNativeInterface::QGLXContext>();
+            #elif __APPLE__
+                auto context = qglcontext->nativeInterface<QNativeInterface::QCocoaGLContext>();
+            #elif _WIN32
+                auto context = qglcontext->nativeInterface<QNativeInterface::QWGLContext>();
+            #endif
 
-        #ifdef __linux__
-        auto context = qglcontext->nativeInterface<QNativeInterface::QGLXContext>();
-        #elif __APPLE__
-        auto context = qglcontext->nativeInterface<QNativeInterface::QCocoaGLContext>();
-        #endif
-
-        textureHandles = QQuickBgfx::CreateQSGTexture(m_window, width, height, qglcontext);
+            textureHandles = QQuickBgfx::CreateQSGTexture(m_window, width, height, qglcontext);
         #else
-        textureHandles = QQuickBgfx::CreateQSGTexture(m_window, width, height, nullptr);
+            textureHandles = QQuickBgfx::CreateQSGTexture(m_window, width, height, nullptr);
         #endif
 
         auto newBgfxInternalId = bgfx::overrideInternal(backBuffer, textureHandles.nativeTextureHandle);

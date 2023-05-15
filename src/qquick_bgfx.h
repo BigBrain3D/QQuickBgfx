@@ -4,93 +4,108 @@
 #include <bx/bx.h>
 
 #include <QOpenGLContext>
+#include <QDebug>
 
 class QSGTexture;
 class QQuickWindow;
 
 namespace QQuickBgfx {
-
-struct TextureHandles
-{
-    QSGTexture *qsgTextue{nullptr};
-    uintptr_t nativeTextureHandle{};
-};
-
-#if defined(__APPLE__) || defined(APPLE_USE_METAL)
-bgfx::Init initMetalBackend(void *windowHandle, void *context, const uint16_t width, const uint16_t height);
-TextureHandles CreateQSGMetalTexture(QQuickWindow *window, int w, int h);
-#elif _WIN32
-bgfx::Init initD3D11Backend(void *windowHandle, void *context, const uint16_t width, const uint16_t height);
-TextureHandles CreateQSGD3D11Texture(QQuickWindow *window, int w, int h);
-#else
-bgfx::Init initGLBackend(void* windowHandle, void* context, const uint16_t width, const uint16_t height);
-TextureHandles CreateGLTexture(QQuickWindow *window, int w, int h, QOpenGLContext* context);
-#endif
-
-inline bgfx::Init initBackend(bgfx::RendererType::Enum graphicsApi, void *windowHandle, void *context,
-                              const uint16_t width, const uint16_t height)
-{
-    switch (graphicsApi)
+    struct TextureHandles
     {
-        case bgfx::RendererType::Metal:
-#ifdef __APPLE__
-            return initMetalBackend(windowHandle, context, width, height);
-#endif
-            break;
-        case bgfx::RendererType::Direct3D11:
-#ifdef _WIN32
-            return QQuickBgfx::initD3D11Backend(windowHandle, context, width, height);
-#endif
-            break;
-        case bgfx::RendererType::OpenGL:
-#if defined(__linux__) || defined(__APPLE__)
-            return QQuickBgfx::initGLBackend(windowHandle, context, width, height);
-#endif
-            break;
-        default:
-            BX_ASSERT(false, "Invalid or not implemented Graphics Api");
-            break;
-    }
-    return {};
-}
+        QSGTexture *qsgTextue{nullptr};
+        uintptr_t nativeTextureHandle{};
+    };
 
-inline TextureHandles CreateQSGTexture(QQuickWindow *window, int w, int h, QOpenGLContext* context = nullptr)
-{
-    switch (bgfx::getRendererType())
+    #if defined(QQ_ENABLE_METAL)
+        bgfx::Init initMetalBackend(void *windowHandle, void *context, const uint16_t width, const uint16_t height);
+        TextureHandles CreateQSGMetalTexture(QQuickWindow *window, int w, int h);
+    #endif
+
+    #if defined(QQ_ENABLE_DIRECTX)
+        bgfx::Init initD3D11Backend(void *windowHandle, void *context, const uint16_t width, const uint16_t height);
+        TextureHandles CreateQSGD3D11Texture(QQuickWindow *window, int w, int h);
+    #endif
+
+    #if defined(QQ_ENABLE_OPENGL)
+        bgfx::Init initGLBackend(void* windowHandle, void* context, const uint16_t width, const uint16_t height);
+        TextureHandles CreateGLTexture(QQuickWindow *window, int w, int h, QOpenGLContext* context);
+    #endif
+
+    inline bgfx::Init initBackend(bgfx::RendererType::Enum graphicsApi, void *windowHandle, void *context,
+                                const uint16_t width, const uint16_t height)
     {
-        case bgfx::RendererType::Metal:
-#ifdef __APPLE__
-            return CreateQSGMetalTexture(window, w, h);
-#endif
-            break;
-        case bgfx::RendererType::Direct3D11:
-#ifdef _WIN32
-            return CreateQSGD3D11Texture(window, w, h);
-#endif
-            break;
-        case bgfx::RendererType::OpenGL:
-#if defined(__linux__) || defined(__APPLE__)
-            return CreateGLTexture(window, w, h, context);
-#endif
-            break;
-        default:
-            BX_ASSERT(false, "Invalid or not implemented Graphics Api");
-            break;
+        switch (graphicsApi)
+        {
+            case bgfx::RendererType::Metal:
+    #if defined(QQ_ENABLE_METAL)
+                return initMetalBackend(windowHandle, context, width, height);
+    #else
+                BX_ASSERT(false, "Metal is not enabled. Enable it by defining QQ_ENABLE_METAL.");
+    #endif
+                break;
+            case bgfx::RendererType::Direct3D11:
+    #if defined(QQ_ENABLE_DIRECTX)
+                return QQuickBgfx::initD3D11Backend(windowHandle, context, width, height);
+    #else
+                BX_ASSERT(false, "DirectX is not enabled. Enable it by defining QQ_ENABLE_DIRECTX.");
+    #endif
+                break;
+            case bgfx::RendererType::OpenGL:
+    #if defined(QQ_ENABLE_OPENGL)
+                return QQuickBgfx::initGLBackend(windowHandle, context, width, height);
+    #else
+                BX_ASSERT(false, "OpenGL is not enabled. Enable it by defining QQ_ENABLE_OPENGL.");
+    #endif
+                break;
+            default:
+                BX_ASSERT(false, "Invalid or not implemented Graphics API.");
+                break;
+        }
+        return {};
     }
-    return {};
-}
 
-inline bool initialized()
-{
-    return bgfx::getInternalData()->context;
-}
-
-inline void frame()
-{
-    if (initialized())
+    inline TextureHandles CreateQSGTexture(QQuickWindow *window, int w, int h, QOpenGLContext* context = nullptr)
     {
-        bgfx::frame();
+        switch (bgfx::getRendererType())
+        {
+            case bgfx::RendererType::Metal:
+    #if defined(QQ_ENABLE_METAL)
+                return CreateQSGMetalTexture(window, w, h);
+    #else
+                BX_ASSERT(false, "Metal is not enabled. Enable it by defining QQ_ENABLE_METAL.");
+    #endif
+                break;
+            case bgfx::RendererType::Direct3D11:
+    #ifdef defined(QQ_ENABLE_DIRECTX)
+                return CreateQSGD3D11Texture(window, w, h);
+    #else
+                BX_ASSERT(false, "Direct3D is not enabled. Enable it by defining QQ_ENABLE_DIRECTX.");
+    #endif
+                break;
+            case bgfx::RendererType::OpenGL:
+    #if defined(QQ_ENABLE_OPENGL)
+                return CreateGLTexture(window, w, h, context);
+    #else
+                BX_ASSERT(false, "OPENGL is not enabled. Enable it by defining QQ_ENABLE_OPENGL.");
+    #endif
+                break;
+            default:
+                BX_ASSERT(false, "Invalid or not implemented Graphics Api");
+                break;
+        }
+        return {};
     }
-}
 
+    inline bool initialized()
+    {
+        return bgfx::getInternalData()->context;
+    }
+
+    inline void frame()
+    {
+        if (initialized())
+        {
+            bgfx::frame();
+        }
+    }
 }    // namespace QQuickBgfx

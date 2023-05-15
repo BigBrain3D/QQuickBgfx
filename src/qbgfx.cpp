@@ -43,23 +43,37 @@ void QBgfx::init()
     const auto dpr = m_window->effectiveDevicePixelRatio();
     auto winHandle = reinterpret_cast<void *>(m_window->winId());
 
-    #if defined(__APPLE__) && defined(APPLE_USE_METAL) || defined(_WIN32)
-    auto context = static_cast<void *>(rif->getResource(m_window, QSGRendererInterface::DeviceResource));
-    #else
-    auto context = static_cast<void *>(rif->getResource(m_window, QSGRendererInterface::OpenGLContextResource));
+    void* context = nullptr;
+
+    #if defined(QQ_ENABLE_METAL) || defined(QQ_ENABLE_DIRECTX)
+        context = static_cast<void *>(rif->getResource(m_window, QSGRendererInterface::DeviceResource));
+    #elif defined(QQ_ENABLE_OPENGL)
+        context = static_cast<void *>(rif->getResource(m_window, QSGRendererInterface::OpenGLContextResource));
     #endif
 
     bgfx::RendererType::Enum gaphicsApi{bgfx::RendererType::Count};
     switch (rif->graphicsApi())
     {
         case QSGRendererInterface::MetalRhi:
-            gaphicsApi = bgfx::RendererType::Metal;
+            #if defined(QQ_ENABLE_METAL)
+                gaphicsApi = bgfx::RendererType::Metal;
+            #else
+                BX_ASSERT(false, "METAL not enabled.");
+            #endif
             break;
         case QSGRendererInterface::Direct3D11:
-            gaphicsApi = bgfx::RendererType::Direct3D11;
+            #if defined(QQ_ENABLE_DIRECTX)
+                gaphicsApi = bgfx::RendererType::Direct3D11;
+            #else
+                BX_ASSERT(false, "DirectX not enabled.");
+            #endif
             break;
         case QSGRendererInterface::OpenGLRhi:
-            gaphicsApi = bgfx::RendererType::OpenGL;
+            #if defined(QQ_ENABLE_OPENGL)
+                gaphicsApi = bgfx::RendererType::OpenGL;
+            #else
+                BX_ASSERT(false, "OpenGL not enabled.");
+            #endif
         default:
             break;
     }

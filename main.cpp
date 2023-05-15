@@ -83,17 +83,13 @@ int main(int argc, char **argv)
 {
     QGuiApplication app(argc, argv);
 
-#if(WIN32)
-    QQuickWindow::setGraphicsApi(QSGRendererInterface::Direct3D11Rhi);
-#elif __linux__
-    QQuickWindow::setGraphicsApi(QSGRendererInterface::OpenGLRhi);
-#elif __APPLE__
-#ifdef APPLE_USE_METAL
-    QQuickWindow::setGraphicsApi(QSGRendererInterface::MetalRhi);
-#else
+#if defined(QQ_ENABLE_OPENGL)
     QQuickWIndow::setGraphicsApi(QSGRendererInterface::OpenGLRhi);
+#elif defined(QQ_ENABLE_METAL)
+    QQuickWindow::setGraphicsApi(QSGRendererInterface::MetalRhi);
+#elif defined(QQ_ENABLE_DIRECTX)
+    QQuickWindow::setGraphicsApi(QSGRendererInterface::Direct3D11Rhi);
 #endif
-#endif    
 
     QQuickView view;
     view.setResizeMode(QQuickView::SizeRootObjectToView);
