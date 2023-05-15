@@ -1,3 +1,0 @@
-[submodule "deps/bgfx.cmake"]
-	path = deps/bgfx.cmake
-	url = https://github.com/BigBrain3D/bgfx.cmake

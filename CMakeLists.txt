@@ -9,10 +9,10 @@ set(CMAKE_AUTOUIC ON)
 
 set(INSTALL_EXAMPLEDIR "bgfx_qquickitem")
 
-find_package(Qt6 COMPONENTS Core)
-find_package(Qt6 COMPONENTS Gui)
-find_package(Qt6 COMPONENTS Qml)
-find_package(Qt6 COMPONENTS Quick)
+find_package(Qt6 REQUIRED COMPONENTS    Core
+                                        Gui
+                                        Qml
+                                        Quick)
 
 set(SOURCES main.cpp
             src/qquickbgfxitem/qquickbgfxitem.h
@@ -60,11 +60,11 @@ if (RENDERER_NAME STREQUAL "Metal")
     target_link_libraries(bgfx_qquickitem PUBLIC "-framework Metal")
 endif()
 
-target_link_libraries(bgfx_qquickitem PUBLIC  Qt::Core
-                                                    Qt::Gui
-                                                    Qt::Qml
-                                                    Qt::Quick
-                                                    Qt::QuickPrivate
+target_link_libraries(bgfx_qquickitem PUBLIC        Qt6::Core
+                                                    Qt6::Gui
+                                                    Qt6::Qml
+                                                    Qt6::Quick
+                                                    Qt6::QuickPrivate
                                                     bgfx
                                                     bimg
                                                     example-common)
@@ -104,5 +104,4 @@ else()
                   QML_FILES main.qml)
 endif()
 
-add_subdirectory(deps)
 
