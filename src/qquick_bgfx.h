@@ -76,7 +76,7 @@ namespace QQuickBgfx {
     #endif
                 break;
             case bgfx::RendererType::Direct3D11:
-    #ifdef defined(QQ_ENABLE_DIRECTX)
+    #if defined(QQ_ENABLE_DIRECTX)
                 return CreateQSGD3D11Texture(window, w, h);
     #else
                 BX_ASSERT(false, "Direct3D is not enabled. Enable it by defining QQ_ENABLE_DIRECTX.");

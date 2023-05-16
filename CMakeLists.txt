@@ -9,13 +9,14 @@ set(CMAKE_AUTOUIC ON)
 
 set(INSTALL_EXAMPLEDIR "bgfx_qquickitem")
 
+find_package(bgfx REQUIRED)
+
 find_package(Qt6 REQUIRED COMPONENTS    Core
                                         Gui
                                         Qml
                                         Quick)
 
-set(SOURCES main.cpp
-            src/qquickbgfxitem/qquickbgfxitem.h
+set(SOURCES src/qquickbgfxitem/qquickbgfxitem.h
             src/qquickbgfxitem/qquickbgfxitem.cpp
             src/qbgfx.h
             src/qbgfx.cpp
@@ -51,6 +52,11 @@ endif()
 if (QQBGFX_BUILD_LIBRARY)
     qt_add_library(bgfx_qquickitem ${SOURCES})
 else()
+    set(SOURCES ${SOURCES}
+                main.cpp)
+
+    target_link_libraries(bgfx_qquickitem PRIVATE example-common)
+
     qt_add_executable(bgfx_qquickitem ${SOURCES})
 endif()
 
@@ -65,18 +71,26 @@ target_link_libraries(bgfx_qquickitem PUBLIC        Qt6::Core
                                                     Qt6::Qml
                                                     Qt6::Quick
                                                     Qt6::QuickPrivate
-                                                    bgfx
-                                                    bimg
-                                                    example-common)
+                                                    bgfx::bgfx
+                                                    bgfx::bimg
+                                                    bgfx::bx)
+
+target_compile_definitions(bgfx_qquickitem PRIVATE BX_CONFIG_DEBUG)
+
+get_target_property(BGFX_INCLUDE_PATH bgfx::bgfx INTERFACE_INCLUDE_DIRECTORIES)
 
 target_include_directories(bgfx_qquickitem
                             PUBLIC
                             ${CMAKE_CURRENT_LIST_DIR}
                             ${CMAKE_CURRENT_LIST_DIR}/src
-                            ${CMAKE_CURRENT_LIST_DIR}/src/qquickbgfxitem)
+                            ${CMAKE_CURRENT_LIST_DIR}/src/qquickbgfxitem
+                            ${BGFX_INCLUDE_PATH})
 
 if (QQBGFX_BUILD_LIBRARY)
     # ...
+    install(TARGETS bgfx_qquickitem RUNTIME DESTINATION bin
+                                    LIBRARY DESTINATION lib
+                                    ARCHIVE DESTINATION lib/myproject)
 else()
     # Resources:
     set(bgfx_qquickitem_resource_files "main.qml")
@@ -85,8 +99,7 @@ else()
         PREFIX
             "/bgfx_qquickitem"
         FILES
-            ${bgfx_qquickitem_resource_files}
-    )
+            ${bgfx_qquickitem_resource_files})
 
     set_target_properties(bgfx_qquickitem PROPERTIES
         QT_QML_MODULE_VERSION 1.0
