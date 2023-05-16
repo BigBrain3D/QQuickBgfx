@@ -36,10 +36,6 @@ elseif(UNIX)
 endif()
 
 if(RENDERER_NAME STREQUAL "Metal")
-    add_definitions(ENABLE_METAL)
-endif()
-
-if(RENDERER_NAME STREQUAL "Metal")
     set(SOURCES
         ${SOURCES}
         src/qquick_bgfx.mm)
