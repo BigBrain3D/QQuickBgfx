@@ -47,6 +47,8 @@ void QBgfx::init()
 
     #if defined(QQ_ENABLE_METAL) || defined(QQ_ENABLE_DIRECTX)
         context = static_cast<void *>(rif->getResource(m_window, QSGRendererInterface::DeviceResource));
+
+        qInfo() << "METAL CTX: " << context;
     #elif defined(QQ_ENABLE_OPENGL)
         context = static_cast<void *>(rif->getResource(m_window, QSGRendererInterface::OpenGLContextResource));
     #endif
@@ -80,13 +82,19 @@ void QBgfx::init()
     m_bgfxInit =
       QQuickBgfx::initBackend(gaphicsApi, winHandle, context, m_window->width() * dpr, m_window->height() * dpr);
 
+      qInfo() << "Init ctx: " << bgfx::getInternalData()->context;
+
     emit initialized(m_bgfxInit, m_window);
 }
 
 void QBgfx::renderFrame()
 {
+    qInfo() << "renderFrame...";
+
     if (!QQuickBgfx::initialized())
         return;
+
+    qInfo() << "....";
 
     m_window->beginExternalCommands();
     emit render(m_bgfxItems, m_window);

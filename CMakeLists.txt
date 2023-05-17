@@ -46,14 +46,14 @@ else()
 endif()
 
 if (QQBGFX_BUILD_LIBRARY)
-    qt_add_library(bgfx_qquickitem ${SOURCES})
+    add_library(bgfx_qquickitem OBJECT ${SOURCES})
 else()
     set(SOURCES ${SOURCES}
                 main.cpp)
+    
+    qt_add_executable(bgfx_qquickitem ${SOURCES})
 
     target_link_libraries(bgfx_qquickitem PRIVATE example-common)
-
-    qt_add_executable(bgfx_qquickitem ${SOURCES})
 endif()
 
 if (RENDERER_NAME STREQUAL "Metal")
@@ -83,10 +83,10 @@ target_include_directories(bgfx_qquickitem
                             ${BGFX_INCLUDE_PATH})
 
 if (QQBGFX_BUILD_LIBRARY)
-    # ...
-    install(TARGETS bgfx_qquickitem RUNTIME DESTINATION bin
-                                    LIBRARY DESTINATION lib
-                                    ARCHIVE DESTINATION lib/myproject)
+    set_target_properties(bgfx_qquickitem PROPERTIES
+        QT_QML_MODULE_VERSION 1.0
+        QT_QML_MODULE_URI QQuickBgfx
+    )
 else()
     # Resources:
     set(bgfx_qquickitem_resource_files "main.qml")
