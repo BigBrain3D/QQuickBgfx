@@ -42,6 +42,10 @@ QBgfx::~QBgfx()
     //    shutdown();
 }
 
+#if defined(QQ_ENABLE_OPENGL)
+    #include <QOpenGLContext>
+#endif
+
 void QBgfx::init()
 {
     QSGRendererInterface *rif = m_window->rendererInterface();
@@ -52,10 +56,20 @@ void QBgfx::init()
 
     #if defined(QQ_ENABLE_METAL) || defined(QQ_ENABLE_DIRECTX)
         context = static_cast<void *>(rif->getResource(m_window, QSGRendererInterface::DeviceResource));
-
-        qInfo() << "METAL CTX: " << context;
     #elif defined(QQ_ENABLE_OPENGL)
-        context = static_cast<void *>(rif->getResource(m_window, QSGRendererInterface::OpenGLContextResource));
+        auto qtcontext = reinterpret_cast<QOpenGLContext*>(rif->getResource(m_window, QSGRendererInterface::OpenGLContextResource));
+
+        #if defined(_WIN32)
+        auto ninterface = qtcontext->nativeInterface<QNativeInterface::QWGLContext>()->nativeContext();
+        #elif defined(__linux__)
+        auto ninterface = qtcontext->nativeInterface<QNativeInterface::QGLXContext>()->nativeContext();
+        #elif defined(__APPLE__)
+        auto ninterface = qtcontext->nativeInterface<QNativeInterface::QCocoaGLContext>()->nativeContext();
+        #endif
+
+        context = reinterpret_cast<void *>(ninterface);
+
+        qInfo() << "Init ctx0: " << context;
     #endif
 
     bgfx::RendererType::Enum gaphicsApi{bgfx::RendererType::Count};
@@ -87,19 +101,16 @@ void QBgfx::init()
     m_bgfxInit =
       QQuickBgfx::initBackend(gaphicsApi, winHandle, context, m_window->width() * dpr, m_window->height() * dpr);
 
+    emit initialized(m_bgfxInit, m_window);
+
       qInfo() << "Init ctx: " << bgfx::getInternalData()->context;
 
-    emit initialized(m_bgfxInit, m_window);
 }
 
 void QBgfx::renderFrame()
 {
-    qInfo() << "renderFrame...";
-
     if (!QQuickBgfx::initialized())
         return;
-
-    qInfo() << "....";
 
     m_window->beginExternalCommands();
     emit render(m_bgfxItems, m_window);

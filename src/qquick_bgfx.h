@@ -107,7 +107,7 @@ namespace QQuickBgfx {
     {
         if (initialized())
         {
-            bgfx::frame();
+            //bgfx::frame();
         }
     }
 }    // namespace QQuickBgfx
