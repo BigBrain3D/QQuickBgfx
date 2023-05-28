@@ -20,7 +20,7 @@ QBgfx::QBgfx(QQuickWindow *w, const QList<QQuickBgfxItem *> items): m_window(w)
     connect(m_window, &QQuickWindow::beforeSynchronizing, this, &QBgfx::synchronize, Qt::DirectConnection);
 
     //Free standing function instead will always be called from the signal thread
-    connect(m_window, &QQuickWindow::afterRenderPassRecording, QQuickBgfx::frame);
+    connect(m_window, &QQuickWindow::afterRenderPassRecording, this, &QBgfx::requestSwap, Qt::DirectConnection);
 
     //    connect(QGuiApplication::instance(), &QGuiApplication::aboutToQuit, this, &Renderer::shutdown, Qt::QueuedConnection);
 
@@ -30,6 +30,11 @@ QBgfx::QBgfx(QQuickWindow *w, const QList<QQuickBgfxItem *> items): m_window(w)
 void QBgfx::synchronize()
 {
     emit sync(m_bgfxItems, m_window);
+}
+
+void QBgfx::requestSwap()
+{
+    emit swap(m_bgfxItems, m_window);
 }
 
 QBgfx::~QBgfx()

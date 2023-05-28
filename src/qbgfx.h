@@ -26,11 +26,13 @@ private slots:
     void shutdown();
     void init();
     void synchronize();
+    void requestSwap();
 
 signals:
     void render(const std::vector<QQuickBgfxItem *> &, QQuickWindow* windowPtr);
     void initialized(bgfx::Init &, QQuickWindow* windowPtr);
     void sync(const std::vector<QQuickBgfxItem*>& bgfxItems, QQuickWindow* windowPtr);
+    void swap(const std::vector<QQuickBgfxItem*>& bgfxItems, QQuickWindow* windowPtr);
 
 private:
     std::vector<QQuickBgfxItem *> m_bgfxItems;

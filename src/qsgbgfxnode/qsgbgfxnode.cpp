@@ -42,6 +42,8 @@ void QSGBgfxNode::sync()
         const auto width = static_cast<uint16_t >(newSize.width());
         const auto height = static_cast<uint16_t >(newSize.height());
 
+        qDebug() << "Resizing widget: " << width << " X " << height;
+
         auto &backBuffer = m_attachments[0];
         auto &depthBuffer = m_attachments[1];
 
