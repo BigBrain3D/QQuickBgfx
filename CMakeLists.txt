@@ -24,18 +24,15 @@ set(SOURCES src/qquickbgfxitem/qquickbgfxitem.h
             src/qsgbgfxnode/qsgbgfxnode.h
             src/qsgbgfxnode/qsgbgfxnode.cpp)
 
-if (APPLE)
-    set(RENDERER_NAME "Metal")
+if (RENDERER_NAME STREQUAL "METAL")
     add_compile_definitions(QQ_ENABLE_METAL)
-elseif(WIN32)
-    set(RENDERER_NAME "OpenGL")
-    add_compile_definitions(QQ_ENABLE_OPENGL)
-elseif(UNIX)
-    set(RENDERER_NAME "OpenGL")
+elseif(RENDERER_NAME STREQUAL "DIRECTX11")
+    add_compile_definitions(QQ_ENABLE_DIRECTX)
+elseif(RENDERER_NAME STREQUAL "OPENGL")
     add_compile_definitions(QQ_ENABLE_OPENGL)
 endif()
 
-if(RENDERER_NAME STREQUAL "Metal")
+if(RENDERER_NAME STREQUAL "METAL")
     set(SOURCES
         ${SOURCES}
         src/qquick_bgfx.mm)
@@ -56,9 +53,11 @@ else()
     target_link_libraries(bgfx_qquickitem PRIVATE example-common)
 endif()
 
-if (RENDERER_NAME STREQUAL "Metal")
+if (APPLE)
     target_link_libraries(bgfx_qquickitem PUBLIC "-framework AppKit")
+endif()
 
+if (RENDERER_NAME STREQUAL "METAL")
     target_link_libraries(bgfx_qquickitem PUBLIC "-framework Metal")
 endif()
 

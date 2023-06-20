@@ -68,8 +68,6 @@ void QBgfx::init()
         #endif
 
         context = reinterpret_cast<void *>(ninterface);
-
-        qInfo() << "Init ctx0: " << context;
     #endif
 
     bgfx::RendererType::Enum gaphicsApi{bgfx::RendererType::Count};
@@ -102,9 +100,6 @@ void QBgfx::init()
       QQuickBgfx::initBackend(gaphicsApi, winHandle, context, m_window->width() * dpr, m_window->height() * dpr);
 
     emit initialized(m_bgfxInit, m_window);
-
-      qInfo() << "Init ctx: " << bgfx::getInternalData()->context;
-
 }
 
 void QBgfx::renderFrame()
