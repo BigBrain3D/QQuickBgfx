@@ -1,6 +1,9 @@
 #pragma once
 #include <QQuickItem>
 
+#pragma once
+#include <QQuickItem>
+
 class QSGBgfxNode;
 
 using MousePosition = std::array<int, 2>;
@@ -9,12 +12,16 @@ class QQuickBgfxItem : public QQuickItem
 {
     Q_OBJECT
     Q_PROPERTY(int viewId READ viewId WRITE setViewId NOTIFY viewIdChanged)
+    Q_PROPERTY(QString rectName READ rectName WRITE setRectName NOTIFY rectNameChanged)
     Q_PROPERTY(QColor backgroundColor READ backgroundColor WRITE setBackgroundColor NOTIFY backgroundColorChanged)
     QML_NAMED_ELEMENT(BgfxItem)
 
 public:
     QQuickBgfxItem();
     ~QQuickBgfxItem();
+
+    QString rectName() const { return m_rectName; }
+    void setRectName(QString name);
 
     uint16_t viewId() const { return m_viewId; }
     void setViewId(uint16_t viewId);
@@ -31,7 +38,7 @@ public:
 signals:
     void viewIdChanged();
     void backgroundColorChanged();
-
+    void rectNameChanged();
 protected:
     QSGNode *updatePaintNode(QSGNode *, UpdatePaintNodeData *) override;
     void geometryChange(const QRectF &newGeometry, const QRectF &oldGeometry) override;
@@ -46,6 +53,7 @@ private:
     void releaseResources() override;
 
     std::unique_ptr<QSGBgfxNode> m_node;
+    QString m_rectName;
     uint16_t m_viewId{0};
     QColor m_backgroundColor;
     MousePosition m_mousePos{0, 0};

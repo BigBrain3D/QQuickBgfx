@@ -3,10 +3,10 @@
 #include "qquick_bgfx.h"
 #include "qsgbgfxnode/qsgbgfxnode.h"
 
+#include <QRunnable>
+
 QQuickBgfxItem::QQuickBgfxItem()
 {
-    //setAcceptedMouseButtons(Qt::AllButtons);
-    //setFlag(QQuickItem::ItemAcceptsInputMethod);
     setFlag(QQuickItem::ItemHasContents);
 }
 
@@ -18,8 +18,19 @@ void QQuickBgfxItem::invalidateSceneGraph()
     m_node.reset();
 }
 
+class CleanupJob : public QRunnable
+{
+public:
+    CleanupJob() { }
+    void run() override { bgfx::shutdown(); }
+};
+
 void QQuickBgfxItem::releaseResources()
 {
+    qInfo() << "Releasing resources";
+    
+    window()->scheduleRenderJob(new CleanupJob(), QQuickWindow::BeforeSynchronizingStage);
+
     m_node->deleteLater();
     m_node.reset();
 }
@@ -86,6 +97,15 @@ void QQuickBgfxItem::mouseReleaseEvent(QMouseEvent *event)
     }
     m_mousePos = {event->position().toPoint().x(), event->position().toPoint().y()};
     event->setAccepted(true);
+}
+
+void QQuickBgfxItem::setRectName(QString name)
+{
+    m_rectName = name;
+
+    emit rectNameChanged();
+
+    update();
 }
 
 void QQuickBgfxItem::setViewId(uint16_t viewId)

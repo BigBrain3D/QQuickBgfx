@@ -29,7 +29,7 @@ QBgfx::QBgfx(QQuickWindow *w, const QList<QQuickBgfxItem *> items): m_window(w)
 }
 void QBgfx::synchronize()
 {
-    emit sync(m_bgfxItems, m_window);
+    emit sync(m_bgfxItems, static_cast<QObject*>(m_window->findChildren<QQuickItem*>("main")[0]));
 }
 
 void QBgfx::requestSwap()

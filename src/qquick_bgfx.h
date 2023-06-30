@@ -38,8 +38,6 @@ namespace QQuickBgfx {
         {
             case bgfx::RendererType::Metal:
     #if defined(QQ_ENABLE_METAL)
-                qInfo() << "Initializing Metal.";
-
                 return initMetalBackend(windowHandle, context, width, height);
     #else
                 BX_ASSERT(false, "Metal is not enabled. Enable it by defining QQ_ENABLE_METAL.");
